@@ -1,4 +1,4 @@
-Thumbs.db*
+git show --stat --name-only (hash)Thumbs.db*
 .DS_Store
 HELP.md
 .gradle
