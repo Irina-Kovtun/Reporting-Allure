@@ -1,11 +1,16 @@
 package netology.ru.web;
 
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.logevents.SelenideLogger;
 import com.github.javafaker.CreditCardType;
 import com.github.javafaker.Faker;
+import lombok.val;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.Keys;
+import io.qameta.allure.selenide.AllureSelenide;
 
 import java.time.LocalDate;
 import java.util.Locale;
@@ -21,15 +26,25 @@ import java.util.Random;
 
 public class CallBackTest {
 
+    @BeforeAll
+    static void setUpAll() {
+        SelenideLogger.addListener("allure", new AllureSelenide());
+    }
+
+    @AfterAll
+    static void tearDownAll() {
+        SelenideLogger.removeListener("allure");
+    }
+
     @BeforeEach
     void setUp() {
         open("http://localhost:9999");
     }
 
     @Test
-    void shouldTestHappyPathWithFaker() {
-        int firstMeeting = DataGenerator.Registration.generateRandomNumber(3,180);
-        int secondMeeting = DataGenerator.Registration.generateRandomNumber(firstMeeting+1,firstMeeting+180);
+    void shouldTestHappyPathWithFaker() throws InterruptedException {
+        int firstMeeting = DataGenerator.Registration.generateRandomNumber(3, 180);
+        int secondMeeting = DataGenerator.Registration.generateRandomNumber(firstMeeting + 1, firstMeeting + 180);
         $("[data-test-id='city'] input").setValue(DataGenerator.Registration.generateClientPersonalData("ru").getCity());
         $("[placeholder='Дата встречи']").sendKeys(Keys.chord(Keys.CONTROL, "a") + Keys.BACK_SPACE);
         $("[placeholder='Дата встречи']").setValue(DataGenerator.Registration.generateDateOfMeeting(firstMeeting));
@@ -38,16 +53,23 @@ public class CallBackTest {
         $("[data-test-id=agreement] .checkbox__box").click();
         $(withText("Запланировать")).click();
         $("[data-test-id='success-notification']").shouldBe(visible, ofSeconds(15));
-        $("[data-test-id='success-notification']>.notification__content")
-                .shouldHave(text("Встреча успешно запланирована на " + DataGenerator.Registration.generateDateOfMeeting(firstMeeting)));
-        $("[placeholder='Дата встречи']").sendKeys(Keys.chord(Keys.CONTROL, "a") + Keys.BACK_SPACE);
-        $("[placeholder='Дата встречи']").setValue(DataGenerator.Registration.generateDateOfMeeting(secondMeeting));
-        $(withText("Запланировать")).click();
-        $("[data-test-id='replan-notification']").shouldBe(visible);
-        $("[data-test-id='replan-notification']>.notification__content")
-                .shouldHave(text("У вас уже запланирована встреча на другую дату. Перепланировать?"));
-        $(withText("Перепланировать")).click();
-        $("[data-test-id='success-notification']>.notification__content").shouldBe(visible)
-                .shouldHave(exactText("Встреча успешно запланирована на " + DataGenerator.Registration.generateDateOfMeeting(secondMeeting)));
+
+        val sh = $("[data-test-id='success-notification'] .notification__content");
+        val str_ = "Встреча успешно запланирована на "+ DataGenerator.Registration.generateDateOfMeeting(firstMeeting);
+        $("[data-test-id='success-notification'] .notification__content").shouldHave(exactText(str_));
+        int y = 1;
+
+//        $("[data-test-id='success-notification'] .notification__content")
+//                .shouldHave(text("Встреча успешно запланирована на " + DataGenerator.Registration.generateDateOfMeeting(firstMeeting)));
+//        $("[placeholder='Дата встречи']").sendKeys(Keys.chord(Keys.CONTROL, "a") + Keys.BACK_SPACE);
+//        $("[placeholder='Дата встречи']").setValue(DataGenerator.Registration.generateDateOfMeeting(secondMeeting));
+//        $(withText("Запланировать")).click();
+//        $("[data-test-id='replan-notification']").shouldBe(visible);
+//        $("[data-test-id='replan-notification']>.notification__content")
+//                .shouldHave(text("У вас уже запланирована встреча на другую дату. Перепланировать?"));
+//        $(withText("Перепланировать")).click();
+//        $("[data-test-id='success-notification']>.notification__content").shouldBe(visible)
+//                .shouldHave(exactText("Встреча успешно запланирована на " + DataGenerator.Registration.generateDateOfMeeting(secondMeeting)));
+//    }
     }
 }
